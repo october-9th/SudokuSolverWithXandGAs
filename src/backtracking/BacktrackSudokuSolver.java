@@ -2,14 +2,16 @@ package backtracking;
 
 import dancingLinks.Sudoku;
 import dancingLinks.Utils;
+import utils.SudokuResult;
+import utils.SudokuResultExporter;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public class BacktrackSudokuSolver {
 
     private static final int UNASSIGNED = 0;
-    private static int TOTAL_MEMORY_USAGE = 0;
     private static class Cell {
         int row, col;
 
@@ -17,16 +19,11 @@ public class BacktrackSudokuSolver {
             this.row = row;
             this.col = col;
         }
-        public int calculateMemoryUsage() {
-            int objectOverhead = 16; // Approximate overhead in bytes
-            int intFieldSize = 4; // Size of an int in bytes
-            int totalSize = objectOverhead + (2 * intFieldSize); // Total size for 2 int fields
-            return totalSize;
-        }
-
     }
 
     public static void solveSudoku(String filename) {
+        List<SudokuResult> ans = new ArrayList<>();
+
         try {
             List<Long> timings = new ArrayList<>();
             List<int[][]> sudokuList = Utils.importSudoku(filename);
@@ -37,14 +34,19 @@ public class BacktrackSudokuSolver {
                 long startTime = System.nanoTime();
                 solve(sudoku);
                 long elapse = System.nanoTime() - startTime;
+                double elapsedSeconds = elapse / 1_000_000_000.0;
                 timings.add(elapse);
-                index += 1;
                 printGrid(sudoku);
-                System.out.printf(">>>>> Total Memory Usage: %d\n", TOTAL_MEMORY_USAGE);
+                SudokuResult sudokuResult = new SudokuResult("expert", index, elapsedSeconds, "Backtrack Algorithm");
+                ans.add(sudokuResult);
+                index += 1;
             }
             System.out.println(">>>>> Statistic <<<<<");
             Utils.printStats(timings);
-        } catch (IOException e) {
+            SudokuResultExporter.exportResultToCSV("src/boards/result/9x9.csv", ans);
+
+        }
+        catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -52,8 +54,7 @@ public class BacktrackSudokuSolver {
     private static boolean solve(int[][] grid) {
         Cell unassignedCell = findUnassignedLocation(grid);
         if (unassignedCell == null) return true; // Puzzle solved
-        TOTAL_MEMORY_USAGE += unassignedCell.calculateMemoryUsage();
-        System.out.printf(">>>>> Total Memory Usage: %d\n", TOTAL_MEMORY_USAGE);
+//        System.out.printf(">>>>> Total Memory Usage: %d\n", TOTAL_MEMORY_USAGE);
         List<Integer> possibleNumbers = getPossibleNumbers(grid, unassignedCell);
         for (int num : possibleNumbers) {
             if (isValidPlacement(grid, unassignedCell.row, unassignedCell.col, num)) {
@@ -175,8 +176,8 @@ public class BacktrackSudokuSolver {
 
     // Main method to test the solver
     public static void main(String[] args) {
-//        solveSudoku("src/boards/sudoku9x9/9x9_expert.txt");
-        solveSudoku("src/boards/sudoku16x16/16x16_hard.txt");
+        solveSudoku("src/boards/sudoku9x9/9x9_expert.txt");
+//        solveSudoku("src/boards/sudoku16x16/16x16_easy.txt");
 //        solveSudoku("src/boards/9x9.txt");
 //        solveSudoku("src/boards/test.txt");
 //        solveSudoku("src/boards/sudoku25x25/test.txt");
