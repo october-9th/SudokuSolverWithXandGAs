@@ -1,6 +1,7 @@
 package dancingLinks;
 
 import dancingLinks.DancingLinks.Node;
+import utils.Validation;
 
 import java.util.List;
 

@@ -73,16 +73,11 @@ public class Test {
 //		gaImp.thuatToanDiTruyen();
 
         try {
-            List<int[][]> initialSudoku = importSudoku("src/boards/test.txt");
+            List<int[][]> initialSudoku = importSudoku("src/boards/9x9.txt");
 
             for (int[][] sudoku : initialSudoku) {
                 ArrayList<ArrayList<Integer>> converted = convertSudokuGrid(sudoku);
-				for (int i = 0; i < 9; i++) {
-					for (int j = 0; j < 9; j++) {
-						System.out.print(converted.get(i).get(j) + " ");
-					}
-					System.out.println();
-				}
+
                 ImplementGA ga = new ImplementGA(converted, 10000, 30, 0.25, 0.7, 100, 8);
                 Thread thread = new Thread(ga);
                 thread.start();
