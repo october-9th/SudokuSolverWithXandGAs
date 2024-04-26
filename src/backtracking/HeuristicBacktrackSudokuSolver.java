@@ -129,7 +129,7 @@ public class HeuristicBacktrackSudokuSolver {
     public static void solveSudoku(String filename) {
         try {
             List<Long> timings = new ArrayList<>();
-            List<int[][]> sudokuList = Utils.importSudoku(filename);
+            List<int[][]> sudokuList = Utils.importSudokuByLine(filename);
             int index = 1;
             for (int[][] sudoku : sudokuList) {
                 System.out.println(">>>>> Sudoku #" + index + ": <<<<<\n" + Utils.sudokuBoard(sudoku));
@@ -150,7 +150,7 @@ public class HeuristicBacktrackSudokuSolver {
     }
 
     public static void main(String[] args) {
-        solveSudoku("src/boards/sudoku9x9/9x9_expert.txt");
+        solveSudoku("src/boards/top2365.txt");
 //        solveSudoku("src/boards/sudoku16x16/16x16_easy.txt");
 //        solveSudoku("src/boards/9x9.txt");
 //        solveSudoku("src/boards/test.txt");
