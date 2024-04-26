@@ -82,7 +82,58 @@ public class Utils {
         reader.close();
         return sudokus;
     }
+    public static List<int[][]> importSudokuByLine(String filename) throws IOException {
+        List<int[][]> sudokus = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader(filename));
+        String line;
 
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (!line.isEmpty()) {
+                int[][] sudoku = processSudokuGridLineByLine(line);
+                if (sudoku != null) {
+                    sudokus.add(sudoku);
+                }
+            }
+        }
+
+        reader.close();
+        return sudokus;
+    }
+
+    private static int[][] processSudokuGridLineByLine(String line) {
+        int size = (int) Math.sqrt(line.length());
+        int[][] grid = new int[size][size];
+        int row = 0, col = 0;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (Character.isDigit(c)) {
+                int digit = Character.digit(c, 10);
+                if (digit >= 0 && digit <= size) {
+                    grid[row][col] = digit;
+                    col++;
+                    if (col == size) {
+                        col = 0;
+                        row++;
+                    }
+                }
+            } else if (c == '.') {
+                col++;
+                if (col == size) {
+                    col = 0;
+                    row++;
+                }
+            }
+        }
+
+        if (row == size && col == 0) {
+            return grid;
+        } else {
+            System.err.println("Invalid Sudoku grid: " + line);
+            return null;
+        }
+    }
     private static int[][] processSudokuGrid(List<String[]> lines) {
         int gridSize = lines.size();
         int[][] sudoku = new int[gridSize][gridSize];
@@ -99,6 +150,7 @@ public class Utils {
         }
         return sudoku;
     }
+
 
     public static void main(String[] args) {
         try {

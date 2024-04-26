@@ -124,13 +124,6 @@ public class DancingLinks {
     }
 
     private void dancingLinksAlgorithmX(int i) {
-        // generate potential chromosome
-        if(currentDepth>= maxDepth){
-            solution.getPartialSolution(foundSolution);
-            partialSolutionGrid.add(solution.getPotentialChromosome());
-            return;
-        }
-        //
         if (header.right == header) {
             if (flag) {
                 System.out.println("==========================================");

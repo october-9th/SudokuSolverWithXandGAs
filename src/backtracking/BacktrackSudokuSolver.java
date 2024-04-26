@@ -176,8 +176,8 @@ public class BacktrackSudokuSolver {
 
     // Main method to test the solver
     public static void main(String[] args) {
-        solveSudoku("src/boards/sudoku9x9/9x9_expert.txt");
-//        solveSudoku("src/boards/sudoku16x16/16x16_easy.txt");
+//        solveSudoku("src/boards/sudoku9x9/9x9_expert.txt");
+        solveSudoku("src/boards/sudoku16x16/16x16_easy.txt");
 //        solveSudoku("src/boards/9x9.txt");
 //        solveSudoku("src/boards/test.txt");
 //        solveSudoku("src/boards/sudoku25x25/test.txt");
