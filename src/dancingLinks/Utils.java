@@ -8,7 +8,9 @@ import java.util.List;
 
 public class Utils {
     public static void printStats(List<Long> timings) {
-        if (timings.size() == 1) {
+        if (timings.isEmpty())
+            return;
+        else if (timings.size() == 1) {
             System.out.println("avg: " + timings.get(0) * 1e-6 + "ms");
             return;
         }

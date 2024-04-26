@@ -7,11 +7,16 @@ import utils.SudokuResultExporter;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class BacktrackSudokuSolver {
 
+    // add flag to check exceed terminate time
+    private static final long TIME_LIMIT_NANOS = 3_000_000_000L;
+    static long startTime = 0;
     private static final int UNASSIGNED = 0;
+
     private static class Cell {
         int row, col;
 
@@ -21,51 +26,6 @@ public class BacktrackSudokuSolver {
         }
     }
 
-    public static void solveSudoku(String filename) {
-        List<SudokuResult> ans = new ArrayList<>();
-
-        try {
-            List<Long> timings = new ArrayList<>();
-            List<int[][]> sudokuList = Utils.importSudokuByLine(filename);
-            int index = 1;
-            for (int[][] sudoku : sudokuList) {
-                System.out.println(">>>>> Sudoku #" + index + ": <<<<<\n" + Utils.sudokuBoard(sudoku));
-                // estimate time
-                long startTime = System.nanoTime();
-                solve(sudoku);
-                long elapse = System.nanoTime() - startTime;
-                double elapsedSeconds = elapse / 1_000_000_000.0;
-                timings.add(elapse);
-                printGrid(sudoku);
-                SudokuResult sudokuResult = new SudokuResult("expert", index, elapsedSeconds, "Backtrack Algorithm");
-                ans.add(sudokuResult);
-                index += 1;
-            }
-            System.out.println(">>>>> Statistic <<<<<");
-            Utils.printStats(timings);
-            SudokuResultExporter.exportResultToCSV("src/boards/result/9x9.csv", ans);
-
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static boolean solve(int[][] grid) {
-        Cell unassignedCell = findUnassignedLocation(grid);
-        if (unassignedCell == null) return true; // Puzzle solved
-//        System.out.printf(">>>>> Total Memory Usage: %d\n", TOTAL_MEMORY_USAGE);
-        List<Integer> possibleNumbers = getPossibleNumbers(grid, unassignedCell);
-        for (int num : possibleNumbers) {
-            if (isValidPlacement(grid, unassignedCell.row, unassignedCell.col, num)) {
-                grid[unassignedCell.row][unassignedCell.col] = num;
-                if (solve(grid)) return true;
-                grid[unassignedCell.row][unassignedCell.col] = UNASSIGNED; // Backtrack
-            }
-        }
-
-        return false;
-    }
 
     private static Cell findUnassignedLocation(int[][] grid) {
         for (int row = 0; row < grid.length; row++) {
@@ -174,14 +134,140 @@ public class BacktrackSudokuSolver {
         return boardString.toString();
     }
 
+    private static boolean solve(int[][] grid) throws TimeLimitExceededException {
+        Cell unassignedCell = findUnassignedLocation(grid);
+        if (unassignedCell == null) return true; // Puzzle solved
+//        System.out.printf(">>>>> Total Memory Usage: %d\n", TOTAL_MEMORY_USAGE);
+        List<Integer> possibleNumbers = getPossibleNumbers(grid, unassignedCell);
+        for (int num : possibleNumbers) {
+            if (isValidPlacement(grid, unassignedCell.row, unassignedCell.col, num)) {
+                grid[unassignedCell.row][unassignedCell.col] = num;
+                long elapsedTime = System.nanoTime() - startTime;
+                if (elapsedTime > TIME_LIMIT_NANOS) {
+                    throw new TimeLimitExceededException();
+                }
+                if (solve(grid)) return true;
+                grid[unassignedCell.row][unassignedCell.col] = UNASSIGNED; // Backtrack
+            }
+        }
+
+        return false;
+    }
+
+    public static void solveSudokus(String folderPath) {
+        File folder = new File(folderPath);
+        File[] files = folder.listFiles((dir, name) -> name.endsWith(".txt"));
+
+        if (files != null && files.length > 0) {
+            List<List<String>> allResults = new ArrayList<>();
+            for (File file : files) {
+                List<Long> timings = new ArrayList<>();
+                List<Integer> cluesCount = new ArrayList<>();
+                List<String> levels = new ArrayList<>();
+                solveSudoku(file.getAbsolutePath(), timings, cluesCount, levels);
+                addResultsToList(allResults, file.getName(), timings, cluesCount, levels);
+            }
+            writeToCSV(folderPath + File.separator + "sudoku_results_traditional_backtracking.csv", allResults);
+        } else {
+            System.out.println("No text files found in the folder.");
+        }
+    }
+    public static void solveSudoku(String filename, List<Long> timings, List<Integer> cluesCount, List<String> levels) {
+
+        try {
+            List<int[][]> sudokuList = Utils.importSudoku(filename);
+            int index = 1;
+            for (int[][] sudoku : sudokuList) {
+                System.out.println(">>>>> Sudoku #" + index + ": <<<<<\n" + Utils.sudokuBoard(sudoku));
+                // estimate time
+                startTime = System.nanoTime();
+                boolean solved = false;
+                try {
+                    solved = solve(sudoku);
+                } catch (TimeLimitExceededException e) {
+                    System.out.println("Skipping Sudoku #" + index + " (Time limit exceeded)");
+                    timings.add(TIME_LIMIT_NANOS);
+                    int clues = 0;
+                    for (int i = 0; i < sudoku.length; i++) {
+                        for (int j = 0; j < sudoku.length; j++) {
+                            if (sudoku[i][j] != 0) {
+                                clues++;
+                            }
+                        }
+                    }
+                    cluesCount.add(clues);
+                    String level = filename.substring(filename.lastIndexOf("_") + 1, filename.lastIndexOf("."));
+                    levels.add(level);
+                }
+                long elapse = System.nanoTime() - startTime;
+                if (solved) {
+                    timings.add(elapse);
+                    printGrid(sudoku);
+                    int clues = 0;
+                    for (int i = 0; i < sudoku.length; i++) {
+                        for (int j = 0; j < sudoku.length; j++) {
+                            if (sudoku[i][j] != 0) {
+                                clues++;
+                            }
+                        }
+                    }
+                    cluesCount.add(clues);
+                    String level = filename.substring(filename.lastIndexOf("_") + 1, filename.lastIndexOf("."));
+                    levels.add(level);
+                }
+                index += 1;
+            }
+            System.out.println(">>>>> Statistic <<<<<");
+            Utils.printStats(timings);
+
+
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private static void addResultsToList(List<List<String>> allResults, String filename, List<Long> timings, List<Integer> cluesCount, List<String> levels) {
+        for (int i = 0; i < timings.size(); i++) {
+            List<String> row = new ArrayList<>();
+            row.add(filename.substring(0, filename.lastIndexOf("_")));
+            row.add(String.valueOf(i + 1));
+            row.add(String.valueOf(cluesCount.get(i)));
+            row.add(String.valueOf(timings.get(i) * 1e-6));
+            row.add(levels.get(i));
+            allResults.add(row);
+        }
+    }
+    private static void writeToCSV(String csvFilename, List<List<String>> results) {
+        try (PrintWriter writer = new PrintWriter(new File(csvFilename))) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Filename,Sudoku Number,Clues Given,Time to Complete (ms),Difficulty Level\n");
+            for (List<String> row : results) {
+                sb.append(String.join(",", row)).append("\n");
+            }
+            writer.write(sb.toString());
+            System.out.println("Results written to " + csvFilename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private static class TimeLimitExceededException extends Exception {
+        public TimeLimitExceededException() {
+            super("Time limit exceeded");
+        }
+    }
     // Main method to test the solver
     public static void main(String[] args) {
 //        solveSudoku("src/boards/sudoku9x9/9x9_expert.txt");
-        solveSudoku("src/boards/top2365.txt");
+//        solveSudoku("src/boards/top2365.txt");
 //        solveSudoku("src/boards/9x9.txt");
 //        solveSudoku("src/boards/test.txt");
 //        solveSudoku("src/boards/sudoku25x25/test.txt");
 //        solveSudoku("src/boards/16x16.txt");
+
+        // extract algorithm Result
+        solveSudokus("src/boards/sudoku9x9");
+        solveSudokus("src/boards/sudoku16x16");
+        solveSudokus("src/boards/sudoku25x25");
     }
 }
 
