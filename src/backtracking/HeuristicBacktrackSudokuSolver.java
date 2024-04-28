@@ -1,5 +1,6 @@
 package backtracking;
 
+import dancingLinks.Record;
 import dancingLinks.Utils;
 
 import java.io.File;
@@ -197,8 +198,9 @@ public class HeuristicBacktrackSudokuSolver {
                 numberOfBacktrack.add(backtrackCount);
                 index += 1;
             }
-            System.out.println(">>>>> Statistic <<<<<");
+//            System.out.println(">>>>> Statistic <<<<<");
             Utils.printStats(timings);
+            Utils.printStatsBacktrack(numberOfBacktrack);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -233,7 +235,21 @@ public class HeuristicBacktrackSudokuSolver {
 
     public static void main(String[] args) {
 //        solveSudokus("src/boards/backtrack_testing");
-        solveSudokus("src/boards/ref");
+//        solveSudokus("src/boards/ref");
+        for(int i = 1; i <=20; i++)
+            solveSudokus("src/boards/ref");
+        System.out.println("Record timings statistic");
+        int i = 0;
+        for(Record rc : Utils.timingsRecord){
+            i++;
+            System.out.println("Record " + i + ":\n" + rc.toString() + "\n");
+        }
+        System.out.println("Record backtracks statistic");
+        i = 0;
+        for(Record rc : Utils.backtrackRecord){
+            i++;
+            System.out.println("Record " + i + ":\n" + rc.toString() + "\n");
+        }
 //        solveSudoku("src/boards/sudoku16x16/16x16_easy.txt");
 //        solveSudoku("src/boards/9x9.txt");
 //        solveSudoku("src/boards/test.txt");

@@ -1,9 +1,7 @@
 package backtracking;
 
-import dancingLinks.Sudoku;
+import dancingLinks.Record;
 import dancingLinks.Utils;
-import utils.SudokuResult;
-import utils.SudokuResultExporter;
 
 import java.io.File;
 import java.io.IOException;
@@ -230,8 +228,10 @@ public class BacktrackSudokuSolver {
                 }
                 index += 1;
             }
-            System.out.println(">>>>> Statistic <<<<<");
+            System.out.println(">>>>> Statistic Timings <<<<<");
             Utils.printStats(timings);
+            System.out.println(">>>>> Statistic Backtracks <<<<<");
+            Utils.printStatsBacktrack(numberOfBacktrack);
 
 
         } catch (IOException e) {
@@ -239,7 +239,7 @@ public class BacktrackSudokuSolver {
         }
     }
 
-    private static void addResultsToList(List<List<String>> allResults, String filename, List<Long> timings, List<Integer> cluesCount, List<String> levels,  List<Integer> numberOfBacktrack) {
+    private static void addResultsToList(List<List<String>> allResults, String filename, List<Long> timings, List<Integer> cluesCount, List<String> levels, List<Integer> numberOfBacktrack) {
         for (int i = 0; i < timings.size(); i++) {
             List<String> row = new ArrayList<>();
             row.add(filename.substring(0, filename.lastIndexOf("_")));
@@ -283,9 +283,23 @@ public class BacktrackSudokuSolver {
 
         // extract algorithm Result
 //        solveSudokus("src/boards/backtrack_testing");
-        solveSudokus("src/boards/ref");
+//        solveSudokus("src/boards/ref");
 //        solveSudokus("src/boards/sudoku16x16");
 //        solveSudokus("src/boards/sudoku25x25");
+        for(int i = 1; i <=20; i++)
+            solveSudokus("src/boards/ref");
+        System.out.println("Record timings statistic");
+        int i = 0;
+        for(Record rc : Utils.timingsRecord){
+            i++;
+            System.out.println("Record " + i + ":\n" + rc.toString() + "\n");
+        }
+        System.out.println("Record backtracks statistic");
+        i = 0;
+        for(Record rc : Utils.backtrackRecord){
+            i++;
+            System.out.println("Record " + i + ":\n" + rc.toString() + "\n");
+        }
     }
 }
 
