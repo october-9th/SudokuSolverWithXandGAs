@@ -6,7 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Utils {
+
+    public static List<Record> backtrackRecord = new ArrayList<>();
+    public static List<Record> timingsRecord = new ArrayList<>();
     public static void printStats(List<Long> timings) {
         if (timings.isEmpty())
             return;
@@ -28,9 +32,38 @@ public class Utils {
         double avg = sum / timings.size();
 
 
-        System.out.println("min: " + min * 1e-6 + "ms");
-        System.out.println("max: " + max * 1e-6 + "ms");
-        System.out.println("avg: " + avg * 1e-6 + "ms");
+//        System.out.println("min: " + min * 1e-6 + "ms");
+//        System.out.println("max: " + max * 1e-6 + "ms");
+//        System.out.println("avg: " + avg * 1e-6 + "ms");
+        Record newRc = new Record(min * 1e-6,  max * 1e-6, avg * 1e-6);
+        timingsRecord.add(newRc);
+    }
+    public static void printStatsBacktrack(List<Integer> numberOfBacktrack) {
+        if (numberOfBacktrack.isEmpty())
+            return;
+        else if (numberOfBacktrack.size() == 1) {
+            System.out.println("avg: " + numberOfBacktrack.get(0) + " lần");
+            return;
+        }
+        int min = numberOfBacktrack.get(0);
+        int max = numberOfBacktrack.get(0);
+
+        long sum = 0;
+
+        for (int ll : numberOfBacktrack) {
+            min = Math.min(min, ll);
+            max = Math.max(max, ll);
+            sum += ll;
+        }
+
+        double avg = Math.floor((double) sum / numberOfBacktrack.size());
+
+
+//        System.out.println("min: " + min + "lần");
+//        System.out.println("max: " + max + "lần");
+//        System.out.println("avg: " + avg + "lần");
+        Record newRc = new Record(min, max, avg);
+        backtrackRecord.add(newRc);
     }
 
     public static String sudokuBoard(int[][] sudoku) {
